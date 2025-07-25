@@ -194,12 +194,8 @@
     </div>
 
     <script>
-        // 不同主题的五彩纸屑颜色配置
-        const themeColors = {
-            green: ["#4CAF50", "#81C784", "#A5D6A7", "#C8E6C9"], // 绿色系
-            yellow: ["#FFC107", "#FFD54F", "#FFF176", "#FFECB3"], // 黄色系
-            red: ["#F44336", "#EF5350", "#E57373", "#FFCDD2"]     // 红色系
-        };
+        // 保持原来的五彩纸屑颜色配置（不随主题改变）
+        const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
 
         // 背景图片路径配置
         const backgroundImages = {
@@ -208,9 +204,8 @@
             red: "image/红色banner.png"
         };
 
-        // 当前主题和颜色
+        // 当前主题（只影响背景，不影响纸屑颜色）
         let currentTheme = 'green';
-        let colors = themeColors[currentTheme];
         let animationRunning = false;
         
         // 获取DOM元素
@@ -232,13 +227,12 @@
             useWorker: true
         });
 
-        // 切换背景主题的函数
+        // 切换背景主题的函数（只切换背景，不改变纸屑颜色）
         function switchTheme(theme) {
             if (currentTheme === theme) return; // 如果是当前主题则不执行
 
             // 更新当前主题
             currentTheme = theme;
-            colors = themeColors[theme];
 
             // 更新按钮激活状态
             themeButtons.forEach(btn => {
@@ -263,7 +257,7 @@
             }, 300);
         }
 
-        // 五彩纸屑发射函数（使用当前主题颜色）
+        // 五彩纸屑发射函数（始终使用原来的颜色配置）
         function triggerSideCannons() {
             if (animationRunning) return;
             animationRunning = true;
@@ -283,7 +277,7 @@
                     spread: 55,
                     startVelocity: 60,
                     origin: { x: 0, y: 0.5 },
-                    colors: colors, // 使用当前主题颜色
+                    colors: colors, // 始终使用原来的颜色
                 });
 
                 // 右侧发射
@@ -293,7 +287,7 @@
                     spread: 55,
                     startVelocity: 60,
                     origin: { x: 1, y: 0.5 },
-                    colors: colors, // 使用当前主题颜色
+                    colors: colors, // 始终使用原来的颜色
                 });
 
                 requestAnimationFrame(frame);
@@ -312,7 +306,7 @@
                     spread: 55,
                     startVelocity: 60,
                     origin: { x: 0, y: 0.5 },
-                    colors: colors,
+                    colors: colors, // 始终使用原来的颜色
                 });
 
                 // 右侧发射
@@ -322,7 +316,7 @@
                     spread: 55,
                     startVelocity: 60,
                     origin: { x: 1, y: 0.5 },
-                    colors: colors,
+                    colors: colors, // 始终使用原来的颜色
                 });
             };
 
@@ -419,7 +413,7 @@
         // 支持通过URL参数设置初始主题
         if (urlParams.get('theme')) {
             const urlTheme = urlParams.get('theme');
-            if (themeColors[urlTheme]) {
+            if (backgroundImages[urlTheme]) {
                 window.addEventListener('load', () => {
                     setTimeout(() => {
                         switchTheme(urlTheme);
