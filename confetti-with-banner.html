@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绿色Banner五彩纸屑动效</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            background: #2a2a2a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .main-container {
+            width: 1440px;
+            height: 800px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content-area {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .banner-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            min-height: 800px;
+            object-fit: cover;
+        }
+
+        .content-spacer {
+            height: 500px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #666;
+            font-size: 18px;
+        }
+
+        canvas {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            pointer-events: none !important;
+            z-index: 9999 !important;
+        }
+
+        /* 自定义滚动条样式 */
+        .content-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .content-area::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .content-area::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="content-area">
+            <img src="image/绿色banner.png" alt="绿色Banner" class="banner-image">
+            <div class="content-spacer">
+                ↓ 向下滚动查看更多内容 ↓
+            </div>
+        </div>
+        <canvas id="confetti-canvas"></canvas>
+    </div>
+
+    <script>
+        const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
+        let animationRunning = false;
+        
+        // 获取容器和canvas
+        const container = document.querySelector('.main-container');
+        const canvas = document.getElementById('confetti-canvas');
+        
+        // 设置canvas覆盖容器
+        function setupCanvas() {
+            const rect = container.getBoundingClientRect();
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+        }
+
+        // 创建限制在容器内的confetti实例
+        const containerConfetti = confetti.create(canvas, {
+            resize: true,
+            useWorker: true
+        });
+
+        function triggerSideCannons() {
+            if (animationRunning) return;
+            animationRunning = true;
+
+            const end = Date.now() + 3 * 1000; // 3秒
+
+            const frame = () => {
+                if (Date.now() > end) {
+                    animationRunning = false;
+                    return;
+                }
+
+                // 左侧发射
+                containerConfetti({
+                    particleCount: 3,
+                    angle: 60,
+                    spread: 55,
+                    startVelocity: 60,
+                    origin: { x: 0, y: 0.5 },
+                    colors: colors,
+                });
+
+                // 右侧发射
+                containerConfetti({
+                    particleCount: 3,
+                    angle: 120,
+                    spread: 55,
+                    startVelocity: 60,
+                    origin: { x: 1, y: 0.5 },
+                    colors: colors,
+                });
+
+                requestAnimationFrame(frame);
+            };
+
+            frame();
+        }
+
+        function startContinuousAnimation() {
+            const continuousFrame = () => {
+                // 左侧发射
+                containerConfetti({
+                    particleCount: 2,
+                    angle: 60,
+                    spread: 55,
+                    startVelocity: 60,
+                    origin: { x: 0, y: 0.5 },
+                    colors: colors,
+                });
+
+                // 右侧发射
+                containerConfetti({
+                    particleCount: 2,
+                    angle: 120,
+                    spread: 55,
+                    startVelocity: 60,
+                    origin: { x: 1, y: 0.5 },
+                    colors: colors,
+                });
+            };
+
+            // 每150毫秒发射一次
+            return setInterval(continuousFrame, 150);
+        }
+
+        // 键盘控制（保留基本功能但不显示UI）
+        let continuousInterval = null;
+        
+        document.addEventListener('keydown', (e) => {
+            switch(e.key.toLowerCase()) {
+                case ' ': // 空格键 - 单次发射
+                    e.preventDefault();
+                    triggerSideCannons();
+                    break;
+                case 'c': // C键 - 开始连续发射
+                    if (!continuousInterval) {
+                        continuousInterval = startContinuousAnimation();
+                    }
+                    break;
+                case 's': // S键 - 停止连续发射
+                    if (continuousInterval) {
+                        clearInterval(continuousInterval);
+                        continuousInterval = null;
+                    }
+                    break;
+                case 'r': // R键 - 重复播放（5次连续）
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => triggerSideCannons(), i * 4000);
+                    }
+                    break;
+            }
+        });
+
+        // 鼠标点击容器触发
+        container.addEventListener('click', (e) => {
+            triggerSideCannons();
+        });
+
+        // 初始化
+        window.addEventListener('load', () => {
+            setupCanvas();
+            
+            // 页面加载2秒后自动播放
+            setTimeout(() => {
+                triggerSideCannons();
+            }, 2000);
+        });
+
+        // 窗口大小变化时重新设置canvas
+        window.addEventListener('resize', setupCanvas);
+
+        // 提供URL参数控制
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (urlParams.get('autostart') === 'true') {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    continuousInterval = startContinuousAnimation();
+                }, 1000);
+            });
+        }
+
+        if (urlParams.get('delay')) {
+            const delay = parseInt(urlParams.get('delay'));
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    triggerSideCannons();
+                }, delay);
+            });
+        }
+
+        // 页面可见性变化时的处理
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && continuousInterval) {
+                clearInterval(continuousInterval);
+                continuousInterval = null;
+            }
+        });
+    </script>
+</body>
+</html> 
