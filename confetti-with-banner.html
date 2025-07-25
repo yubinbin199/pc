@@ -229,42 +229,30 @@
 
         // 切换背景主题的函数（只切换背景，不改变纸屑颜色）
         function switchTheme(theme) {
-            console.log('切换主题到:', theme); // 调试日志
-            
-            if (currentTheme === theme) {
-                console.log('已经是当前主题，跳过切换'); // 调试日志
-                return; // 如果是当前主题则不执行
-            }
+            if (currentTheme === theme) return; // 如果是当前主题则不执行
 
             // 更新当前主题
             currentTheme = theme;
-            console.log('更新当前主题为:', currentTheme); // 调试日志
 
             // 更新按钮激活状态
             themeButtons.forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.theme === theme) {
                     btn.classList.add('active');
-                    console.log('激活按钮:', theme); // 调试日志
                 }
             });
 
             // 背景图片切换动画
-            console.log('开始背景切换动画'); // 调试日志
             bannerImage.classList.add('fade-out');
             
             setTimeout(() => {
-                const newImageSrc = backgroundImages[theme];
-                console.log('切换到新图片:', newImageSrc); // 调试日志
-                bannerImage.src = newImageSrc;
+                bannerImage.src = backgroundImages[theme];
                 bannerImage.alt = `${theme}背景Banner`;
                 bannerImage.classList.remove('fade-out');
-                console.log('背景图片切换完成'); // 调试日志
             }, 250); // 0.25秒后切换图片
 
             // 触发庆祝动效
             setTimeout(() => {
-                console.log('触发庆祝动效'); // 调试日志
                 triggerSideCannons();
             }, 300);
         }
@@ -339,10 +327,8 @@
         // 主题切换按钮事件监听
         themeButtons.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                console.log('按钮被点击了:', btn.dataset.theme); // 调试日志
                 e.stopPropagation(); // 防止触发容器的点击事件
                 const theme = btn.dataset.theme;
-                console.log('准备切换到主题:', theme); // 调试日志
                 switchTheme(theme);
             });
         });
@@ -393,16 +379,10 @@
 
         // 页面初始化
         window.addEventListener('load', () => {
-            console.log('页面加载完成，开始初始化'); // 调试日志
-            console.log('找到的主题按钮数量:', themeButtons.length); // 调试日志
-            console.log('背景图片元素:', bannerImage); // 调试日志
-            console.log('背景图片配置:', backgroundImages); // 调试日志
-            
             setupCanvas();
             
             // 页面加载2秒后自动播放
             setTimeout(() => {
-                console.log('自动触发纸屑动效'); // 调试日志
                 triggerSideCannons();
             }, 2000);
         });
