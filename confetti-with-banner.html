@@ -141,6 +141,32 @@
             backdrop-filter: blur(10px);
         }
 
+        /* 调试状态显示面板 */
+        .debug-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            max-width: 300px;
+            z-index: 1001;
+            border: 1px solid #333;
+        }
+
+        .debug-panel .status-item {
+            margin: 2px 0;
+        }
+
+        .debug-panel .current-theme {
+            color: #ffff00;
+            font-weight: bold;
+        }
+
         canvas {
             position: absolute !important;
             top: 0 !important;
@@ -190,6 +216,17 @@
                 </small>
             </div>
         </div>
+        
+        <!-- 调试状态显示面板 -->
+        <div class="debug-panel" id="debug-panel">
+            <div class="status-item">状态监控面板</div>
+            <div class="status-item">当前主题: <span class="current-theme" id="current-theme-display">green</span></div>
+            <div class="status-item">图片路径: <span id="current-image-path">image/绿色banner.png</span></div>
+            <div class="status-item">按钮数量: <span id="button-count">-</span></div>
+            <div class="status-item">最后操作: <span id="last-action">页面初始化</span></div>
+            <div class="status-item">点击测试: <span id="click-test">等待点击</span></div>
+        </div>
+        
         <canvas id="confetti-canvas"></canvas>
     </div>
 
@@ -213,6 +250,18 @@
         const canvas = document.getElementById('confetti-canvas');
         const bannerImage = document.getElementById('banner-image');
         const themeButtons = document.querySelectorAll('.theme-btn');
+        
+        // 调试面板元素
+        const currentThemeDisplay = document.getElementById('current-theme-display');
+        const currentImagePath = document.getElementById('current-image-path');
+        const buttonCount = document.getElementById('button-count');
+        const lastAction = document.getElementById('last-action');
+        const clickTest = document.getElementById('click-test');
+
+        // 更新调试信息的函数
+        function updateDebugInfo(action) {
+            if (lastAction) lastAction.textContent = action;
+        }
 
         // 设置canvas覆盖容器
         function setupCanvas() {
@@ -229,10 +278,17 @@
 
         // 切换背景主题的函数（只切换背景，不改变纸屑颜色）
         function switchTheme(theme) {
-            if (currentTheme === theme) return; // 如果是当前主题则不执行
+            updateDebugInfo(`尝试切换到主题: ${theme}`);
+            
+            if (currentTheme === theme) {
+                updateDebugInfo(`已经是${theme}主题，跳过`);
+                return; // 如果是当前主题则不执行
+            }
 
             // 更新当前主题
             currentTheme = theme;
+            if (currentThemeDisplay) currentThemeDisplay.textContent = theme;
+            updateDebugInfo(`正在切换到${theme}主题`);
 
             // 更新按钮激活状态
             themeButtons.forEach(btn => {
@@ -246,9 +302,12 @@
             bannerImage.classList.add('fade-out');
             
             setTimeout(() => {
-                bannerImage.src = backgroundImages[theme];
+                const newImagePath = backgroundImages[theme];
+                bannerImage.src = newImagePath;
                 bannerImage.alt = `${theme}背景Banner`;
+                if (currentImagePath) currentImagePath.textContent = newImagePath;
                 bannerImage.classList.remove('fade-out');
+                updateDebugInfo(`${theme}背景切换完成`);
             }, 250); // 0.25秒后切换图片
 
             // 触发庆祝动效
@@ -261,6 +320,7 @@
         function triggerSideCannons() {
             if (animationRunning) return;
             animationRunning = true;
+            updateDebugInfo('触发五彩纸屑动效');
 
             const end = Date.now() + 3 * 1000; // 3秒
 
@@ -329,6 +389,7 @@
             btn.addEventListener('click', (e) => {
                 e.stopPropagation(); // 防止触发容器的点击事件
                 const theme = btn.dataset.theme;
+                if (clickTest) clickTest.textContent = `点击了${theme}按钮`;
                 switchTheme(theme);
             });
         });
@@ -340,10 +401,12 @@
             switch(e.key.toLowerCase()) {
                 case ' ': // 空格键 - 单次发射
                     e.preventDefault();
+                    updateDebugInfo('空格键触发纸屑');
                     triggerSideCannons();
                     break;
                 case 'c': // C键 - 开始连续发射
                     if (!continuousInterval) {
+                        updateDebugInfo('C键开始连续发射');
                         continuousInterval = startContinuousAnimation();
                     }
                     break;
@@ -351,20 +414,25 @@
                     if (continuousInterval) {
                         clearInterval(continuousInterval);
                         continuousInterval = null;
+                        updateDebugInfo('S键停止连续发射');
                     }
                     break;
                 case 'r': // R键 - 重复播放（5次连续）
+                    updateDebugInfo('R键重复播放');
                     for (let i = 0; i < 5; i++) {
                         setTimeout(() => triggerSideCannons(), i * 4000);
                     }
                     break;
                 case '1': // 数字键1 - 切换绿色主题
+                    updateDebugInfo('按键1切换绿色');
                     switchTheme('green');
                     break;
                 case '2': // 数字键2 - 切换黄色主题
+                    updateDebugInfo('按键2切换黄色');
                     switchTheme('yellow');
                     break;
                 case '3': // 数字键3 - 切换红色主题
+                    updateDebugInfo('按键3切换红色');
                     switchTheme('red');
                     break;
             }
@@ -374,6 +442,7 @@
         container.addEventListener('click', (e) => {
             // 如果点击的是主题按钮，则不触发纸屑
             if (e.target.classList.contains('theme-btn')) return;
+            updateDebugInfo('鼠标点击触发纸屑');
             triggerSideCannons();
         });
 
@@ -381,8 +450,15 @@
         window.addEventListener('load', () => {
             setupCanvas();
             
+            // 更新调试面板信息
+            if (buttonCount) buttonCount.textContent = themeButtons.length;
+            if (currentImagePath) currentImagePath.textContent = backgroundImages[currentTheme];
+            updateDebugInfo('页面初始化完成');
+            if (clickTest) clickTest.textContent = '等待点击测试';
+            
             // 页面加载2秒后自动播放
             setTimeout(() => {
+                updateDebugInfo('自动播放纸屑');
                 triggerSideCannons();
             }, 2000);
         });
